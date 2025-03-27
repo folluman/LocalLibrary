@@ -34,13 +34,11 @@ app.use(
 
 // Set up mongoose connection
 var mongoose = require('mongoose');
-mongoose.set('strictQuery', false);
-const dev_db_url = process.env.MONGODB_URL;
-const mongoDB = process.env.MONGODB_URI || dev_db_url;
-main().catch((err) => console.log(err));
-async function main() {
-  await mongoose.connect(mongoDB);
-}
+var mongoDB = process.env.MONGODB_URL;
+mongoose.connect(mongoDB, {useUnifiedTopology: true}); // utilize useUnifiedTopology porque o useNewUrlParser está depreciado
+var db = mongoose.connection;
+db.on('error', console.log.bind(console, 'MongoDB connection error: '));
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
