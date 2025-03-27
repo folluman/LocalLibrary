@@ -1,0 +1,28 @@
+extends layout
+
+block content
+  h1=title
+  br
+  h2 Book Name: #{bookinstance.book.title}
+  br
+  h3 Imprint: #{bookinstance.imprint}
+  br
+  h3 Due back: #{bookinstance.due_back_yyyy_mm_dd}
+  br
+  form(method='POST')
+    div.form-group
+      label(for='status') Status:
+      select#status.form-control(name='status' required)
+        option(value='') --Please select a status--
+        each val in ['Maintenance', 'Available', 'Loaned', 'Reserved']
+          if undefined===bookinstance || bookinstance.status!=val
+            option(value=val)= val
+          else
+            option(value=val selected)= val
+
+    button.btn.btn-primary(type='submit') Submit
+
+  if errors
+    ul
+      for error in errors
+        li!= error.msg

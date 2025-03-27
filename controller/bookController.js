@@ -24,7 +24,7 @@ exports.index = asyncHandler(async (req, res, next) => {
     title: 'Local Library Home',
     book_count: numBooks,
     book_instance_count: numBooksInstances,
-    book_instance_count_available_count: numAvailableBookIntances,
+    book_instance_available_count: numAvailableBookIntances,
     author_count: numAuthors,
     genre_count: numGenres,
   });
@@ -144,12 +144,41 @@ exports.book_create_post = [
 
 // Display book delete form on GET.
 exports.book_delete_get = asyncHandler(async (req, res, next) => {
-  res.send('NOT IMPLEMENTED: Book delete GET');
+  // Get detail of book and all their books intance (in parallel)
+  const [book, allBookInstances] = await Promise.all([
+    Book.findById(req.params.id).populate('author').exec(),
+    BookInstance.find({ book: req.params.id }, 'status imprint').exec(),
+  ]);
+
+  if (book === null) {
+    res.redirect('catalog/books');
+  }
+
+  res.render('book_delete', {
+    title: 'Delete Book',
+    book: book,
+    book_instances: allBookInstances,
+  });
 });
 
 // Handle book delete on POST.
 exports.book_delete_post = asyncHandler(async (req, res, next) => {
-  res.send('NOT IMPLEMENTED: Book delete POST');
+  const [book, allBookInstances] = await Promise.all([
+    Book.findById(req.params.id).exec(),
+    BookInstance.find({ book: req.params.id }, 'status imprint').exec(),
+  ]);
+
+  if (allBookInstances.length > 0) {
+    res.render('book_delete', {
+      title: 'Delete Book',
+      book: book,
+      book_instances: allBookInstances,
+    });
+    return;
+  } else {
+    await Book.findByIdAndDelete(req.body.bookid);
+    res.redirect('/catalog/books');
+  }
 });
 
 // Display book update form on GET.

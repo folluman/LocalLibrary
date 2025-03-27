@@ -2,7 +2,7 @@ const BookInstance = require('../models/bookinstance');
 const asyncHandler = require('express-async-handler');
 const { body, validationResult } = require('express-validator');
 const Book = require('../models/book');
-const { book_list } = require('./bookController');
+const bookinstance = require('../models/bookinstance');
 
 // Display list of all BookInstances.
 exports.bookinstance_list = asyncHandler(async (req, res, next) => {
@@ -90,20 +90,67 @@ exports.bookinstance_create_post = [
 
 // Display BookInstance delete form on GET.
 exports.bookinstance_delete_get = asyncHandler(async (req, res, next) => {
-  res.send('NOT IMPLEMENTED: BookInstance delete GET');
+  // Get details of Book Instances
+  const bookinstance = await BookInstance.findById(req.params.id).populate('book').exec();
+
+  if (bookinstance === null){
+    res.redirect('/catalog/bookinstances');
+  }
+
+  res.render('bookinstance_delete', {
+    title: 'Delete Book Instance',
+    bookinstance: bookinstance,
+  });
 });
 
 // Handle BookInstance delete on POST.
 exports.bookinstance_delete_post = asyncHandler(async (req, res, next) => {
-  res.send('NOT IMPLEMENTED: BookInstance delete POST');
+  // Delete post BookInstance
+  await BookInstance.findByIdAndDelete(req.body.bookinstanceid);
+  res.redirect('/catalog/bookinstances');
 });
 
 // Display BookInstance update form on GET.
 exports.bookinstance_update_get = asyncHandler(async (req, res, next) => {
-  res.send('NOT IMPLEMENTED: BookInstance update GET');
+  const bookinstance = await BookInstance.findById(req.params.id).populate('book').exec();
+  
+  if(bookinstance === null){
+    const err = new Error('Book instance not found');
+    err.status = 404;
+    return next(err);
+  }
+
+  res.render('bookinstance_update', {
+    title: 'Update Instance',
+    bookinstance: bookinstance,
+  });
 });
 
 // Handle bookinstance update on POST.
-exports.bookinstance_update_post = asyncHandler(async (req, res, next) => {
-  res.send('NOT IMPLEMENTED: BookInstance update POST');
-});
+exports.bookinstance_update_post = [
+
+  // Validate and sanitize field
+  body('status').escape(),
+
+  asyncHandler(async(req, res, next) => {
+    const errors = validationResult(req);
+
+    const status = new BookInstance({
+      status: req.body.status,
+      _id: req.params.id,
+    });
+
+    if(!errors.isEmpty()) {
+      res.render('bookinstance_update', {
+        title: 'Update Instance',
+        bookinstance: status,
+        errors: errors.array(),
+      });
+      return;
+    } else {
+      const updateStatus = await BookInstance.findByIdAndUpdate(req.params.id, status, {});
+
+      res.redirect(updateStatus.url);
+    }
+  })
+];
