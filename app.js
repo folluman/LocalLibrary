@@ -12,7 +12,7 @@ var app = express();
 
 // Set up mongoose connection
 var mongoose = require('mongoose');
-var mongoDB = 'mongodb+srv://kauebastos74:kank2115@cluster0.3vfzv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+var mongoDB = '';
 mongoose.connect(mongoDB, {useUnifiedTopology: true}); // utilize useUnifiedTopology porque o useNewUrlParser está depreciado
 var db = mongoose.connection;
 db.on('error', console.log.bind(console, 'MongoDB connection error: '));
